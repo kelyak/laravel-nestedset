@@ -76,16 +76,26 @@ class ScopedNodeTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(2, $node->getLft());
         $this->assertEquals(4, $nodeInOtherScope->getLft());
     }
-//
-//    public function testNodeDescendantOfNodesInSameScope()
-//    {
-//        $menu1RootNode = MenuItem::find(2);
-//        $menu2RootNode = MenuItem::find(4);
-//        $node = MenuItem::find(5);
-//
-//        $this->assertTrue($node->isDescendantOf($menu1RootNode));
-//        $this->assertFalse($node->isDescendantOf($menu2RootNode));
-//    }
+
+    public function testNodeDescendantOfNodeInSameScope()
+    {
+        $menu1RootNode = MenuItem::find(2);
+        $menu2RootNode = MenuItem::find(4);
+        $node = MenuItem::find(5);
+
+        $this->assertTrue($node->isDescendantOf($menu1RootNode));
+        $this->assertFalse($node->isDescendantOf($menu2RootNode));
+    }
+
+    public function testNodeSelfOrDescendantOfNodeInSameScope()
+    {
+        $menu1RootNode = MenuItem::find(2);
+        $menu2RootNode = MenuItem::find(4);
+        $node = MenuItem::find(5);
+
+        $this->assertTrue($node->isSelfOrDescendantOf($menu1RootNode));
+        $this->assertFalse($node->isSelfOrDescendantOf($menu2RootNode));
+    }
 //
 //    public function testMovingNodeNotAffectingOtherMenu()
 //    {

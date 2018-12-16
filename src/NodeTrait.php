@@ -1005,6 +1005,22 @@ trait NodeTrait
     }
 
     /**
+     * @param self $node
+     */
+    public function isInSameScope(self $node)
+    {
+        $inSameScope = true;
+
+        if ( $scoped = $this->getScopeAttributes()) {
+            foreach ($scoped as $attr) {
+                $inSameScope = $inSameScope && $this->getAttribute($attr) === $node->getAttribute($attr);
+            }
+        }
+
+        return $inSameScope;
+    }
+
+    /**
      * Get whether a node is a descendant of other node.
      *
      * @param self $other
@@ -1013,7 +1029,8 @@ trait NodeTrait
      */
     public function isDescendantOf(self $other)
     {
-        return $this->getLft() > $other->getLft() &&
+        return $this->isInSameScope($other) &&
+            $this->getLft() > $other->getLft() &&
             $this->getLft() < $other->getRgt();
     }
 
@@ -1026,7 +1043,8 @@ trait NodeTrait
      */
     public function isSelfOrDescendantOf(self $other)
     {
-        return $this->getLft() >= $other->getLft() &&
+        return $this->isInSameScope($other) &&
+            $this->getLft() >= $other->getLft() &&
             $this->getLft() < $other->getRgt();
     }
 
