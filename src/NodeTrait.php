@@ -176,6 +176,17 @@ trait NodeTrait
         return true;
     }
 
+    protected function setScopeLikeNode(self $node)
+    {
+        if ($scoped = $this->getScopeAttributes()) {
+            foreach ($scoped as $attribute) {
+                $this->$attribute = $node->$attribute;
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * Apply parent model.
      *
@@ -423,10 +434,9 @@ trait NodeTrait
     public function appendOrPrependTo(self $parent, $prepend = false)
     {
         $this->assertNodeExists($parent)
-            ->assertNotDescendant($parent)
-            ->assertSameScope($parent);
+            ->assertNotDescendant($parent);
 
-        $this->setParent($parent)->dirtyBounds();
+        $this->setScopeLikeNode($parent)->setParent($parent)->dirtyBounds();
 
         return $this->setNodeAction('appendOrPrepend', $parent, $prepend);
     }
@@ -812,7 +822,7 @@ trait NodeTrait
         if ($this->getParentId() == $value) return;
 
         if ($value) {
-            $this->appendToNode($this->newScopedQuery()->findOrFail($value));
+            $this->appendToNode($this->findOrFail($value));
         } else {
             $this->makeRoot();
         }

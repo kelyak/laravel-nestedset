@@ -67,15 +67,15 @@ class ScopedNodeTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(1, $node->getLft());
     }
-//
-//    public function testAppendingNewNodeNotAffectingOtherScopes()
-//    {
-//        $node = MenuItem::create(['parent_id' => 1]);
-//        $nodeInOtherScope = MenuItem::find(6);
-//
-//        $this->assertEquals(2, $node->getLft());
-//        $this->assertEquals(4, $nodeInOtherScope->getLft());
-//    }
+
+    public function testAppendingNewNodeNotAffectingOtherScopes()
+    {
+        $node = MenuItem::create(['parent_id' => 1]);
+        $nodeInOtherScope = MenuItem::find(6);
+
+        $this->assertEquals(2, $node->getLft());
+        $this->assertEquals(4, $nodeInOtherScope->getLft());
+    }
 //
 //    public function testNodeDescendantOfNodesInSameScope()
 //    {
