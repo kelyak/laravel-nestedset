@@ -474,14 +474,13 @@ trait NodeTrait
     public function beforeOrAfterNode(self $node, $after = false)
     {
         $this->assertNodeExists($node)
-            ->assertNotDescendant($node)
-            ->assertSameScope($node);
+            ->assertNotDescendant($node);
 
         if ( ! $this->isSiblingOf($node)) {
             $this->setParent($node->getRelationValue('parent'));
         }
 
-        $this->dirtyBounds();
+        $this->setScopeLikeNode($node)->dirtyBounds();
 
         return $this->setNodeAction('beforeOrAfter', $node, $after);
     }

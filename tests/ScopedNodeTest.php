@@ -70,10 +70,23 @@ class ScopedNodeTest extends PHPUnit_Framework_TestCase
 
     public function testAppendingNewNodeNotAffectingOtherScopes()
     {
-        $node = MenuItem::create(['parent_id' => 1]);
+        $node = MenuItem::create(['parent_id' => 1, 'title' => 'menu item 4']);
         $nodeInOtherScope = MenuItem::find(6);
 
         $this->assertEquals(2, $node->getLft());
+        $this->assertEquals(4, $nodeInOtherScope->getLft());
+    }
+
+    public function testInsertNewNodeBeforeNodeNotAffectingOtherScope()
+    {
+        $node = new MenuItem(['title' => 'menu item 4']);
+        $neighbor = MenuItem::find(5);
+        $node->insertBeforeNode($neighbor);
+
+        $nodeInOtherScope = MenuItem::find(6);
+
+        $this->assertEquals(4, $node->getLft());
+        $this->assertEquals(6, $neighbor->getLft());
         $this->assertEquals(4, $nodeInOtherScope->getLft());
     }
 
