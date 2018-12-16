@@ -358,7 +358,12 @@ trait NodeTrait
      */
     public function makeRoot()
     {
-        $this->setParent(null)->dirtyBounds();
+
+        // See commit 33a1b2c45b0d84c2f5ba94bc95453894d4ff1789 and bb87fb293127d1334caf98ddfa9d80a0df074638
+        // for now I'll remove dirtyBounds because I NEED to get access to the original values of lft and rgt
+        // later in the code. I'll see if I find a better solution later
+//        $this->setParent(null)->dirtyBounds();
+        $this->setParent(null);
 
         return $this->setNodeAction('root');
     }
@@ -436,7 +441,12 @@ trait NodeTrait
         $this->assertNodeExists($parent)
             ->assertNotDescendant($parent);
 
-        $this->setScopeLikeNode($parent)->setParent($parent)->dirtyBounds();
+
+        // See commit 33a1b2c45b0d84c2f5ba94bc95453894d4ff1789 and bb87fb293127d1334caf98ddfa9d80a0df074638
+        // for now I'll remove dirtyBounds because I NEED to get access to the original values of lft and rgt
+        // later in the code. I'll see if I find a better solution later
+//        $this->setScopeLikeNode($parent)->setParent($parent)->dirtyBounds();
+        $this->setScopeLikeNode($parent)->setParent($parent);
 
         return $this->setNodeAction('appendOrPrepend', $parent, $prepend);
     }
@@ -480,7 +490,11 @@ trait NodeTrait
             $this->setParent($node->getRelationValue('parent'));
         }
 
-        $this->setScopeLikeNode($node)->dirtyBounds();
+        // See commit 33a1b2c45b0d84c2f5ba94bc95453894d4ff1789 and bb87fb293127d1334caf98ddfa9d80a0df074638
+        // for now I'll remove dirtyBounds because I NEED to get access to the original values of lft and rgt
+        // later in the code. I'll see if I find a better solution later
+//        $this->setScopeLikeNode($node)->dirtyBounds();
+        $this->setScopeLikeNode($node);
 
         return $this->setNodeAction('beforeOrAfter', $node, $after);
     }
@@ -595,8 +609,34 @@ trait NodeTrait
      */
     protected function moveNode($position)
     {
-        $updated = $this->newNestedSetQuery()
-                ->moveNode($this->getKey(), $position) > 0;
+        if($scoped = $this->getScopeAttributes()) {
+            foreach($scoped as $attribute) {
+                $originalScope[$attribute] = $this->getOriginal($attribute);
+                $updatedScope[$attribute] = $this->getAttribute($attribute);
+            }
+        }
+
+        // If scope unchanged, just update nodes in the current scope...
+        if($updatedScope == $originalScope) {
+            $updated = $this->newNestedSetQuery()
+                    ->moveNode($this->getKey(), $position) > 0;
+        } else {
+            // TODO : I'm not sure about the $updated part...
+            $updated = true;
+            // ... else, we'll have to close the gap in the previous scope...
+            $lft = $this->getOriginal($this->getLftName());
+            $rgt = $this->getOriginal($this->getRgtName());
+            $heightInOriginalScope = $rgt - $lft + 1;
+            $updated = $updated && $this->newOriginalNestedSetQuery()->makeGap($rgt + 1, -$heightInOriginalScope);
+
+            // then open the gap in the new scope
+            $updated = $updated && $this->newNestedSetQuery()->makeGap($position, 2);
+
+            $height = $this->getNodeHeight();
+
+            $this->setLft($position);
+            $this->setRgt($position + $height - 1);
+        }
 
         if ($updated) $this->refreshNode();
 
@@ -688,6 +728,15 @@ trait NodeTrait
         return $this->applyNestedSetScope($builder, $table);
     }
 
+    public function newOriginalNestedSetQuery($table = null)
+    {
+        $builder = $this->usesSoftDelete()
+            ? $this->withTrashed()
+            : $this->newQuery();
+
+        return $this->applyOriginalNestedSetScope($builder, $table);
+    }
+
     /**
      * @param string $table
      *
@@ -717,6 +766,24 @@ trait NodeTrait
         foreach ($scoped as $attribute) {
             $query->where($table.'.'.$attribute, '=',
                           $this->getAttributeValue($attribute));
+        }
+
+        return $query;
+    }
+
+    public function applyOriginalNestedSetScope($query, $table = null)
+    {
+        if ( ! $scoped = $this->getScopeAttributes()) {
+            return $query;
+        }
+
+        if ( ! $table) {
+            $table = $this->getTable();
+        }
+
+        foreach ($scoped as $attribute) {
+            $query->where($table.'.'.$attribute, '=',
+                          $this->getOriginal($attribute));
         }
 
         return $query;
@@ -1006,7 +1073,7 @@ trait NodeTrait
     /**
      * @param self $node
      */
-    public function isInSameScope(self $node)
+    public function isInSameScopeAs(self $node)
     {
         $inSameScope = true;
 
@@ -1028,7 +1095,7 @@ trait NodeTrait
      */
     public function isDescendantOf(self $other)
     {
-        return $this->isInSameScope($other) &&
+        return $this->isInSameScopeAs($other) &&
             $this->getLft() > $other->getLft() &&
             $this->getLft() < $other->getRgt();
     }
@@ -1042,7 +1109,7 @@ trait NodeTrait
      */
     public function isSelfOrDescendantOf(self $other)
     {
-        return $this->isInSameScope($other) &&
+        return $this->isInSameScopeAs($other) &&
             $this->getLft() >= $other->getLft() &&
             $this->getLft() < $other->getRgt();
     }

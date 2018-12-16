@@ -109,31 +109,33 @@ class ScopedNodeTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($node->isSelfOrDescendantOf($menu1RootNode));
         $this->assertFalse($node->isSelfOrDescendantOf($menu2RootNode));
     }
-//
-//    public function testMovingNodeNotAffectingOtherMenu()
-//    {
-//        $node = MenuItem::where('menu_id', '=', 1)->first();
-//
-//        $node->down();
-//
-//        $node = MenuItem::where('menu_id', '=', 2)->first();
-//
-//        $this->assertEquals(1, $node->getLft());
-//    }
-//
-//    public function testMovingNodeInParentFromDifferentMenuUpdatingBothScopes()
-//    {
-//        $node = MenuItem::find(5);
-//        $previousParent = $node->parent;
-//        $newParent = MenuItem::find(3);
-//        $newParentSiblings = $newParent->getNextSiblings()->first();
-//
-//        $newParent->appendNode($node);
-//
-//        $this->assertEquals(4, $previousParent->getRgt());
-//        $this->assertEquals(4, $newParent->getRgt());
-//        $this->assertEquals(5, $newParentSiblings->getLft());
-//    }
+
+    public function testMovingNodeNotAffectingOtherMenu()
+    {
+        $node = MenuItem::where('menu_id', '=', 1)->first();
+
+        $node->down();
+
+        $node = MenuItem::where('menu_id', '=', 2)->first();
+
+        $this->assertEquals(1, $node->getLft());
+    }
+
+    public function testMovingNodeInParentFromDifferentMenuUpdatingBothScopes()
+    {
+        $node = MenuItem::find(5);
+        $previousParent = $node->parent;
+        $newParent = MenuItem::find(3);
+        $newParentSiblings = $newParent->getNextSiblings()->first();
+
+        $newParent->appendNode($node);
+
+        $previousParent->refreshNode();
+        $newParentSiblings->refreshNode();
+        $this->assertEquals(4, $previousParent->getRgt());
+        $this->assertEquals(4, $newParent->getRgt());
+        $this->assertEquals(5, $newParentSiblings->getLft());
+    }
 
     // TODO : handle method insertNode in a test
     // TODO : handle method moveNode
