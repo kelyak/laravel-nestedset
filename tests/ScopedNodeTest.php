@@ -52,16 +52,69 @@ class ScopedNodeTest extends PHPUnit_Framework_TestCase
         $this->assertTreeNotBroken(2);
     }
 
-    public function testMovingNodeNotAffectingOtherMenu()
+    public function testCreatingNewRootInsertingNodeInCorrectPlaceInScope()
     {
-        $node = MenuItem::where('menu_id', '=', 1)->first();
+        $node = MenuItem::create(['menu_id' => 3, 'title' => 'menu item 2']);
 
-        $node->down();
-
-        $node = MenuItem::where('menu_id', '=', 2)->first();
-
-        $this->assertEquals(1, $node->getLft());
+        $this->assertEquals(3, $node->getLft());
     }
+
+//    public function testCreatingNewRootNotAffectingOtherScopes()
+//    {
+//        MenuItem::create(['menu_id' => 4, 'title' => 'menu item 1']);
+//
+//        $node = MenuItem::where('menu_id', '=', 1)->first();
+//
+//        $this->assertEquals(1, $node->getLft());
+//    }
+//
+//    public function testAppendingNewNodeNotAffectingOtherScopes()
+//    {
+//        $node = MenuItem::create(['parent_id' => 1]);
+//        $nodeInOtherScope = MenuItem::find(6);
+//
+//        $this->assertEquals(2, $node->getLft());
+//        $this->assertEquals(4, $nodeInOtherScope->getLft());
+//    }
+//
+//    public function testNodeDescendantOfNodesInSameScope()
+//    {
+//        $menu1RootNode = MenuItem::find(2);
+//        $menu2RootNode = MenuItem::find(4);
+//        $node = MenuItem::find(5);
+//
+//        $this->assertTrue($node->isDescendantOf($menu1RootNode));
+//        $this->assertFalse($node->isDescendantOf($menu2RootNode));
+//    }
+//
+//    public function testMovingNodeNotAffectingOtherMenu()
+//    {
+//        $node = MenuItem::where('menu_id', '=', 1)->first();
+//
+//        $node->down();
+//
+//        $node = MenuItem::where('menu_id', '=', 2)->first();
+//
+//        $this->assertEquals(1, $node->getLft());
+//    }
+//
+//    public function testMovingNodeInParentFromDifferentMenuUpdatingBothScopes()
+//    {
+//        $node = MenuItem::find(5);
+//        $previousParent = $node->parent;
+//        $newParent = MenuItem::find(3);
+//        $newParentSiblings = $newParent->getNextSiblings()->first();
+//
+//        $newParent->appendNode($node);
+//
+//        $this->assertEquals(4, $previousParent->getRgt());
+//        $this->assertEquals(4, $newParent->getRgt());
+//        $this->assertEquals(5, $newParentSiblings->getLft());
+//    }
+
+    // TODO : handle method insertNode in a test
+    // TODO : handle method moveNode
+    // TODO : handle method fixNodes to be done on each scopes
 
     public function testScoped()
     {

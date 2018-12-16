@@ -887,6 +887,7 @@ class QueryBuilder extends Builder
      */
     protected function fixNodes(array &$dictionary, $parent = null)
     {
+        // TODO : Il va falloir faire le fixNodes sur chaque scope
         $parentId = $parent ? $parent->getKey() : null;
         $cut = $parent ? $parent->getLft() + 1 : 1;
 
